@@ -176,7 +176,7 @@
         <section class="verify-main">
             <span class="eyebrow">Official Verification</span>
             <h1 class="headline">Verify a <span>Certificate</span></h1>
-            <p class="lead">Use the issued certificate number to confirm that this credential was officially issued by {{ $appName }}. This page is connected to the institution’s registered records and provides a clear verification result.</p>
+            <p class="lead">Use the issued certificate number to confirm that this credential was issued by the {{ $appName }}. This page is connected to the institution’s official records and provides an instant verification result.</p>
 
             <div class="verify-form-wrap">
                 <form method="GET" action="{{ route('verify.index') }}">
