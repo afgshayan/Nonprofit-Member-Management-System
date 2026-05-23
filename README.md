@@ -6,12 +6,15 @@ A complete **member management system** built for nonprofits, associations, and 
 
 ## Features
 
-- **Member database** — store full member profiles: name, province, city, country, email, phone, WhatsApp, gender, birth year, education, event, notes
-- **Search & filter** — live search with filters by province, education, and event
+- **Member database** — store full member profiles: name, province, city, country, email, phone, WhatsApp, gender, birth year, education, expertise, event, notes
+- **Search & filter** — live search with filters by province, education, event, and expertise
 - **Sortable columns** — click any column header to sort ascending/descending
 - **Pagination** — configurable per-page results (10 / 25 / 50 / 100)
 - **CSV import** — bulk-import members from a CSV file with validation and error reporting
 - **CSV export** — export the full member list (with active filters applied)
+- **Media management** — upload and attach images/documents to member profiles
+- **Certificate issuance** — generate, issue, and manage digital certificates for members with public verification URL
+- **Public certificate verification** — unique shareable links for certificate verification without login
 - **Role-based access control** — three user roles with different permission levels
 - **User management** — admins can create, edit, and delete portal user accounts
 - **Settings panel** — configure app name, per-page default, session lifetime, login rate limiting, and custom login URL slug
@@ -86,27 +89,85 @@ Quick summary:
 app/
   Http/
     Controllers/
-      AuthController.php       — Login / logout
-      PersonController.php     — Members CRUD, import, export
-      SettingController.php    — Settings panel
-      UserController.php       — User management
+      AuthController.php           — Login / logout
+      PersonController.php         — Members CRUD, import, export
+      MediaController.php          — Media uploads and management
+      CertificateController.php    — Certificate issuance and public verification
+      SettingController.php        — Settings panel
+      UserController.php           — User management
     Middleware/
-      SecurityHeaders.php      — HTTP security headers
-      CheckRole.php            — Role-based route guard
+      SecurityHeaders.php          — HTTP security headers
+      CheckRole.php                — Role-based route guard
   Models/
-    Person.php                 — Member model (SoftDeletes)
-    User.php                   — User model with role helpers
-    Setting.php                — Settings key/value model
+    Person.php                     — Member model (SoftDeletes)
+    Media.php                      — Media attachments model
+    Certificate.php                — Digital certificates model
+    User.php                       — User model with role helpers
+    Setting.php                    — Settings key/value model
 resources/views/
-  layouts/app.blade.php        — Main layout (sidebar + topbar)
-  persons/                     — Member views (index, show, create, edit)
-  users/                       — User management views
-  auth/                        — Login view
+  layouts/app.blade.php            — Main layout (sidebar + topbar)
+  persons/                         — Member views (index, show, create, edit)
+  media/                           — Media management views
+  certificates/                    — Certificate views and public verification
+  users/                           — User management views
+  auth/                            — Login view
 public/install/
-  index.php                    — Self-contained web installer
-database/migrations/           — All database migrations
-routes/web.php                 — Application routes
+  index.php                        — Self-contained web installer
+storage/
+  app/
+    public/                        — Public file uploads (certificates, media)
+    private/                       — Private file uploads
+database/migrations/               — All database migrations
+routes/web.php                     — Application routes
+config/update.php                  — GitHub update checker configuration
 ```
+
+---
+
+## Migrating Between Domains
+
+If you need to move an existing installation to a new domain, follow these steps:
+
+### 1. **Database Settings**
+- Update the `.env` file with the new database credentials (if different)
+- The database contents remain the same during migration
+
+### 2. **Application URL** (if different)
+- Update `.env` `APP_URL` to match the new domain:
+  ```
+  APP_URL=https://new-domain.com
+  ```
+
+### 3. **File Uploads & Media**
+- Copy the entire `storage/app/` directory to the new server (contains all uploaded media and certificates)
+- Ensure the new server has write permissions: `chmod -R 755 storage/`
+
+### 4. **Session & Cache Storage**
+- Sessions are stored in the database, so they migrate automatically
+- Clear the cache on the new server (optional):
+  ```bash
+  php artisan cache:clear
+  php artisan config:clear
+  ```
+
+### 5. **Public Paths (if domain changed)**
+- Public certificate verification URLs will automatically work with the new domain
+- No manual updates needed — the system uses relative URLs
+
+### 6. **Installer Lock**
+- If the web installer is blocked (`storage/installed.lock`), delete it only if you need to re-run setup:
+  ```bash
+  rm storage/installed.lock
+  ```
+
+### 7. **SSL Certificate**
+- If using HTTPS, ensure your SSL certificate is valid for the new domain
+- Update `APP_URL` to use `https://` if securing the new domain
+
+### Tips
+- Test all features (member CRUD, CSV import/export, certificate verification) after migration
+- Verify that file uploads work by testing media and certificate generation
+- Check that the automatic update checker works correctly (it uses GitHub)
 
 ---
 
