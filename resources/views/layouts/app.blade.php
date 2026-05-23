@@ -56,7 +56,6 @@
         .sb-logo {
             width: 36px; height: 36px;
             background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             font-size: .95rem; color: #fff; flex-shrink: 0;
         }
@@ -75,7 +74,7 @@
         .sb-nav { list-style: none; margin: 0; padding: 0; }
         .sb-nav a {
             display: flex; align-items: center; gap: 10px;
-            padding: 9px 10px; border-radius: 10px;
+            padding: 9px 10px;
             color: #64748b; text-decoration: none;
             font-size: .835rem; font-weight: 500;
             transition: background .14s, color .14s;
@@ -97,13 +96,12 @@
         }
         .user-pill {
             display: flex; align-items: center; gap: 10px;
-            padding: 9px 10px; border-radius: 10px;
+            padding: 9px 10px;
             background: #f8fafc; margin-bottom: 8px;
         }
         .user-ava {
             width: 32px; height: 32px;
             background: linear-gradient(135deg, var(--brand), #f43f5e);
-            border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             color: #fff; font-size: .78rem; font-weight: 700; flex-shrink: 0;
         }
@@ -162,7 +160,7 @@
         .tb-icon-btn {
             width: 36px; height: 36px;
             background: #f8fafc; border: 1.5px solid #e8edf3;
-            border-radius: 9px; display: flex; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             color: #64748b; font-size: 1rem; cursor: pointer; text-decoration: none;
             transition: background .14s, color .14s;
         }
@@ -190,7 +188,6 @@
         /* ─── STAT CARDS ───────────────────────────── */
         .stat-card {
             background: #fff;
-            border-radius: 14px;
             border: 1px solid #e8edf3;
             padding: 20px 22px;
             position: relative;
@@ -227,7 +224,6 @@
         /* ─── GENERIC CARD ─────────────────────────── */
         .card {
             border: 1px solid #e8edf3 !important;
-            border-radius: 14px;
             box-shadow: none;
         }
         .card-header {
@@ -242,13 +238,12 @@
             display: flex; align-items: center; gap: 8px;
         }
         .card-header-title i {
-            width: 28px; height: 28px; border-radius: 7px;
             display: flex; align-items: center; justify-content: center;
             font-size: .85rem;
         }
 
         /* ─── TABLE ────────────────────────────────── */
-        .tbl-wrap { overflow-x: auto; border-radius: 0 0 14px 14px; }
+        .tbl-wrap { overflow-x: auto; }
         .table { margin: 0; font-size: .84rem; }
         .table thead th {
             background: #f8fafc; color: #475569;
@@ -271,8 +266,8 @@
         .th-sort .arrow.on { opacity: 1; color: var(--brand); }
 
         /* ─── BUTTONS ───────────────────────────────── */
-        .btn { border-radius: 9px; font-weight: 500; font-size: .84rem; }
-        .btn-sm { font-size: .77rem; padding: .3rem .65rem; border-radius: 7px; }
+        .btn { font-weight: 500; font-size: .84rem; }
+        .btn-sm { font-size: .77rem; padding: .3rem .65rem; }
         .btn-primary {
             background: linear-gradient(135deg, var(--brand), var(--brand-dark));
             border: none; color: #fff;
@@ -281,7 +276,7 @@
         .btn-act {
             width: 26px; height: 26px; padding: 0;
             display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 6px; font-size: .72rem;
+            font-size: .72rem;
         }
 
         /* ─── FORM CONTROLS ─────────────────────────── */
@@ -295,12 +290,12 @@
         }
         .input-group-text {
             background: #f8fafc; border: 1.5px solid #e2e8f0;
-            border-right: none; border-radius: 9px 0 0 9px; color: #94a3b8;
+            border-right: none; color: #94a3b8;
         }
         .input-group .form-control { border-radius: 0 9px 9px 0; border-left-color: #e2e8f0; }
 
         /* ─── ALERTS ────────────────────────────────── */
-        .alert { border-radius: 10px; font-size: .875rem; border: none; }
+        .alert { font-size: .875rem; border: none; }
         .alert-success { background: #f0fdf4; color: #166534; }
         .alert-danger   { background: #fef2f2; color: #991b1b; }
 
@@ -325,7 +320,6 @@
         .filter-card {
             background: #fff;
             border: 1px solid #e8edf3;
-            border-radius: 14px;
             padding: 16px 20px;
             margin-bottom: 20px;
         }
@@ -395,6 +389,12 @@
         <div class="sb-section-lbl">Data Tools</div>
         <ul class="sb-nav">
             @if(!auth()->user()->isViewer())
+            <li>
+                <a href="{{ route('certificates.index') }}"
+                   class="{{ request()->routeIs('certificates.*') ? 'active' : '' }}">
+                    <i class="bi bi-patch-check-fill"></i> Certificates
+                </a>
+            </li>
             <li>
                 <a href="{{ route('media.index') }}"
                    class="{{ request()->routeIs('media.*') ? 'active' : '' }}">

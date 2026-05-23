@@ -358,6 +358,68 @@
                 </div>
                 @endif
 
+                <div class="section-title"><i class="bi bi-patch-check me-1"></i> Certificates</div>
+                <div class="info-card mb-4">
+                    @if($person->certificates->isNotEmpty())
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Certificate No.</th>
+                                        <th>Title</th>
+                                        <th>Issued</th>
+                                        @if(!auth()->user()->isViewer())
+                                            <th>PDF</th>
+                                            <th>QR</th>
+                                            <th></th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($person->certificates as $certificate)
+                                        <tr>
+                                            <td class="fw-semibold">{{ $certificate->certificate_number }}</td>
+                                            <td>{{ $certificate->title ?: '—' }}</td>
+                                            <td>{{ $certificate->issued_at?->format('M d, Y') ?: '—' }}</td>
+                                            @if(!auth()->user()->isViewer())
+                                                <td>
+                                                    @if($certificate->pdfMedia)
+                                                        <a href="{{ route('media.download', $certificate->pdfMedia) }}" class="btn btn-sm btn-outline-secondary">PDF</a>
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('certificates.qr', $certificate) }}" class="btn btn-sm btn-outline-secondary">QR</a>
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('certificates.edit', $certificate) }}" class="btn btn-sm btn-primary">Edit</a>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @if(!auth()->user()->isViewer())
+                            <div class="mt-3">
+                                <a href="{{ route('certificates.create', ['person_id' => $person->id]) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-plus-circle me-1"></i>Issue New Certificate
+                                </a>
+                            </div>
+                        @endif
+                    @else
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <span class="text-muted">No certificates have been issued for this person yet.</span>
+                            @if(!auth()->user()->isViewer())
+                                <a href="{{ route('certificates.create', ['person_id' => $person->id]) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-plus-circle me-1"></i>Issue Certificate
+                                </a>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
                 {{-- â”€â”€ Timestamps â”€â”€ --}}
                 @if(!auth()->user()->isViewer())
                 <hr style="border-color:#f1f5f9;">

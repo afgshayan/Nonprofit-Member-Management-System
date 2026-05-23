@@ -383,7 +383,32 @@ function createTables(PDO $pdo): void
             KEY `media_created_at_index` (`created_at`),
             CONSTRAINT `media_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+        // certificates
+        "CREATE TABLE IF NOT EXISTS `certificates` (
+            `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `person_id` BIGINT UNSIGNED NOT NULL,
+            `certificate_number` VARCHAR(100) NOT NULL,
+            `verify_token` VARCHAR(32) NOT NULL,
+            `title` VARCHAR(255) NULL DEFAULT NULL,
+            `issued_at` DATE NOT NULL,
+            `notes` TEXT NULL DEFAULT NULL,
+            `pdf_media_id` BIGINT UNSIGNED NULL DEFAULT NULL,
+            `issued_by` BIGINT UNSIGNED NULL DEFAULT NULL,
+            `created_at` TIMESTAMP NULL DEFAULT NULL,
+            `updated_at` TIMESTAMP NULL DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `certificates_certificate_number_unique` (`certificate_number`),
+            UNIQUE KEY `certificates_verify_token_unique` (`verify_token`),
+            KEY `certificates_person_id_issued_at_index` (`person_id`, `issued_at`),
+            KEY `certificates_pdf_media_id_index` (`pdf_media_id`),
+            KEY `certificates_issued_by_index` (`issued_by`),
+            CONSTRAINT `certificates_person_id_foreign` FOREIGN KEY (`person_id`) REFERENCES `persons` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `certificates_pdf_media_id_foreign` FOREIGN KEY (`pdf_media_id`) REFERENCES `media` (`id`) ON DELETE SET NULL,
+            CONSTRAINT `certificates_issued_by_foreign` FOREIGN KEY (`issued_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
     ];
+
 
     foreach ($sqls as $sql) {
         $pdo->exec($sql);
@@ -401,6 +426,7 @@ function createTables(PDO $pdo): void
         '2026_03_04_000000_remove_city_birth_year_from_persons_table',
         '2026_03_27_000000_revamp_persons_fields',
         '2026_03_27_100000_create_media_table',
+        '2026_05_23_000000_create_certificates_table',
     ];
     $existing = $pdo->query("SELECT migration FROM `migrations`")->fetchAll(PDO::FETCH_COLUMN);
     $ins = $pdo->prepare("INSERT INTO `migrations` (`migration`, `batch`) VALUES (:m, 1)");

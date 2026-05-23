@@ -77,7 +77,9 @@ class AppServiceProvider extends ServiceProvider
                 }
             } catch (\Throwable) {}
 
-            $view->with(compact('appName', 'appDesc', 'updateAvailable', 'updateVersion'));
+            $certificateNavVisible = auth()->check() && !auth()->user()->isViewer();
+
+            $view->with(compact('appName', 'appDesc', 'updateAvailable', 'updateVersion', 'certificateNavVisible'));
         });
     }
 }

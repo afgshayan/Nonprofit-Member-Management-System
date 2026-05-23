@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Person extends Model
@@ -169,6 +170,11 @@ class Person extends Model
             'areas_of_expertise'   => 'nullable|string|max:5000',
             'proposed_initiatives' => 'nullable|string|max:5000',
         ];
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class)->orderByDesc('issued_at')->orderByDesc('id');
     }
 
     public static function validationMessages(): array

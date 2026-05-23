@@ -6,7 +6,7 @@
 |---|---|
 | PHP | 8.2 or higher |
 | MySQL / MariaDB | 5.7 / 10.3 or higher |
-| Web Server | Apache or Nginx |
+| Web Server | Apache / Nginx / LiteSpeed|
 | PHP Extensions | PDO, pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, bcmath |
 
 ---

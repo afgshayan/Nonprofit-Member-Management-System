@@ -7,6 +7,8 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\PublicCertificateVerificationController;
 
 // ---------------------------------------------------------------------------
 // Resolve login slug from settings (gracefully handles unconfigured DB)
@@ -35,6 +37,12 @@ Route::get('/', function () {
     } catch (\Throwable) {}
     return response(view('errors.403', compact('title', 'message')), 403);
 });
+
+// ---------------------------------------------------------------------------
+// Public certificate verification
+// ---------------------------------------------------------------------------
+Route::get('/verify', [PublicCertificateVerificationController::class, 'index'])->name('verify.index');
+Route::get('/v/{token}', [PublicCertificateVerificationController::class, 'byToken'])->name('verify.token');
 
 // ---------------------------------------------------------------------------
 // Authentication routes (guests only)
@@ -96,6 +104,10 @@ Route::middleware('auth')->group(function () {
 
     // ── User management (admin only) ─────────────────────────────────────────
     Route::resource('users', UserController::class)->except(['show']);
+
+    // ── Certificates ───────────────────────────────────────────────────────────
+    Route::get('certificates/{certificate}/qr', [CertificateController::class, 'qr'])->name('certificates.qr');
+    Route::resource('certificates', CertificateController::class)->except(['show']);
     // ── Update system (admin only) ────────────────────────────────────────────
     Route::get ('update',       [UpdateController::class, 'index'])->name('update.index');
     Route::post('update/check', [UpdateController::class, 'check'])->name('update.check');

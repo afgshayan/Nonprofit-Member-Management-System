@@ -120,6 +120,8 @@ class PersonController extends Controller
 
     public function show(Person $person)
     {
+        $person->load(['certificates.pdfMedia']);
+
         return view('persons.show', compact('person'));
     }
 
