@@ -67,12 +67,60 @@ A complete **member management system** built for nonprofits, associations, and 
 - **Viewer data masking** — viewer-role users cannot see email, phone, WhatsApp, event name, or registration date in any view
 - **Installer lock** — after installation a `storage/installed.lock` file is created; the installer is blocked until this file is deleted
 - **Admin-only destructive actions** — delete and bulk-delete are restricted to admin role only
+- **Backup & Restore** — admin-only feature to backup entire database, settings, and media files; easily restore on new domain
+- **Cache management** — clear application cache from the admin panel to optimize performance
 
 ---
 
-## Installation
+## Backup & Restore System
 
-See [INSTALL.md](INSTALL.md) for full installation instructions.
+**Admin-only feature** for secure backup and recovery of your entire installation.
+
+### What's Included in a Backup
+- **Database** — complete SQL dump of all tables and data
+- **Settings** — all application settings (app name, session lifetime, etc.)
+- **Media files** — all uploaded certificates, member photos, and documents
+- **Metadata** — backup info, PHP version, Laravel version for reference
+
+### How to Use
+
+1. **Create a Backup**
+   - Go to **System → Backup & Restore**
+   - Click **Create Backup**
+   - Optionally add a note (e.g., "Before migration")
+   - Wait for completion
+
+2. **Download a Backup**
+   - List shows all backups with creation date and file size
+   - Click the download icon to get the ZIP file (safe to store remotely)
+
+3. **Restore a Backup**
+   - Click the restore icon on any backup
+   - **Warning:** Current data will be replaced
+   - **You will be logged out** after restore completes
+   - Log back in to verify restored data
+
+4. **Delete a Backup**
+   - Click the delete icon to free up storage
+   - Deleted backups cannot be recovered
+
+### Using Backup for Domain Migration
+
+Perfect when moving your installation to a new domain:
+
+1. **On old domain:** Create and download a full backup
+2. **On new domain:** 
+   - Set up a fresh installation
+   - Go to **Backup & Restore**, upload and restore the backup
+   - All data, settings, and media are restored instantly
+
+### Cache Management
+
+- **Clear Cache** button removes stale data and frees memory
+- Useful before major updates or if experiencing performance issues
+- Does not affect user data — only temporary caches
+
+---
 
 Quick summary:
 1. Upload project to your server
@@ -80,6 +128,16 @@ Quick summary:
 3. Point your web server document root to the `public/` folder
 4. Visit your domain — the installer opens automatically
 5. Follow the 6-step wizard
+
+### After Installation
+
+Don't forget to run migrations to set up the backup system:
+
+```bash
+php artisan migrate
+```
+
+This creates the `backups` table used for tracking backup history.
 
 ---
 
@@ -93,6 +151,7 @@ app/
       PersonController.php         — Members CRUD, import, export
       MediaController.php          — Media uploads and management
       CertificateController.php    — Certificate issuance and public verification
+      BackupController.php         — Backup creation, restore, and cache clearing
       SettingController.php        — Settings panel
       UserController.php           — User management
     Middleware/
@@ -102,6 +161,7 @@ app/
     Person.php                     — Member model (SoftDeletes)
     Media.php                      — Media attachments model
     Certificate.php                — Digital certificates model
+    Backup.php                     — Backup records model
     User.php                       — User model with role helpers
     Setting.php                    — Settings key/value model
 resources/views/
@@ -109,6 +169,7 @@ resources/views/
   persons/                         — Member views (index, show, create, edit)
   media/                           — Media management views
   certificates/                    — Certificate views and public verification
+  settings/backups.blade.php       — Backup & restore UI
   users/                           — User management views
   auth/                            — Login view
 public/install/
