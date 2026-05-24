@@ -9,6 +9,7 @@ use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\PublicCertificateVerificationController;
+use App\Http\Controllers\BackupController;
 
 // ---------------------------------------------------------------------------
 // Resolve login slug from settings (gracefully handles unconfigured DB)
@@ -101,6 +102,14 @@ Route::middleware('auth')->group(function () {
     Route::get('settings',               [SettingController::class, 'index'])->name('settings.index');
     Route::put('settings',               [SettingController::class, 'update'])->name('settings.update');
     Route::post('settings/test-captcha', [SettingController::class, 'testCaptcha'])->name('settings.test-captcha');
+
+    // ── Backup & Restore (admin only) ────────────────────────────────────────
+    Route::get('backups',                    [BackupController::class, 'index'])->name('backups.index');
+    Route::post('backups/create',            [BackupController::class, 'create'])->name('backups.create');
+    Route::get('backups/{backup}/download',  [BackupController::class, 'download'])->name('backups.download');
+    Route::post('backups/{backup}/restore',  [BackupController::class, 'restore'])->name('backups.restore');
+    Route::delete('backups/{backup}',        [BackupController::class, 'delete'])->name('backups.delete');
+    Route::post('cache/clear',               [BackupController::class, 'clearCache'])->name('cache.clear');
 
     // ── User management (admin only) ─────────────────────────────────────────
     Route::resource('users', UserController::class)->except(['show']);

@@ -201,7 +201,7 @@
                         <dt>Title</dt>
                         <dd>{{ $certificate->title ?: '—' }}</dd>
                         <dt>Issued Date</dt>
-                        <dd $certificate->issued_at?->format('M d, Y') ?: '—' }}</dd>
+                        <dd>{{ $certificate->issued_at?->format('M d, Y') ?: '—' }}</dd>
                     </dl>
                 </div>
             @elseif($searched)

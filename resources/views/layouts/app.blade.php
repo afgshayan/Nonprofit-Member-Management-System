@@ -440,6 +440,12 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('backups.index') }}"
+                   class="{{ request()->routeIs('backups.*') ? 'active' : '' }}">
+                    <i class="bi bi-cloud-arrow-down"></i> Backup & Restore
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('update.index') }}"
                    class="{{ request()->routeIs('update.*') ? 'active' : '' }}"
                    @if($updateAvailable) style="color:#16a34a; font-weight:600;" @endif>
