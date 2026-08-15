@@ -428,6 +428,12 @@
                     <i class="bi bi-person-lock"></i> Users
                 </a>
             </li>
+            <li>
+                <a href="{{ route('categories.index') }}"
+                   class="{{ request()->routeIs('categories.*') ? 'active' : '' }}">
+                    <i class="bi bi-tags-fill"></i> Categories
+                </a>
+            </li>
         </ul>
     </div>
     <div class="sb-section">

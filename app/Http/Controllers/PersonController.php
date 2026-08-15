@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Person;
 use App\Models\Media;
 use App\Models\Setting;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +28,7 @@ class PersonController extends Controller
             'country'   => 'nullable|string|max:100',
             'city'      => 'nullable|string|max:100',
             'state'     => 'nullable|string|max:100',
+            'category'  => 'nullable|integer|exists:categories,id',
             'sort'      => 'nullable|string|in:' . implode(',', self::SORT_COLUMNS),
             'direction' => 'nullable|string|in:asc,desc',
             'per_page'  => 'nullable|integer|in:25,50,100,200,500,1000',
@@ -36,6 +38,7 @@ class PersonController extends Controller
         $country   = $request->input('country');
         $city      = $request->input('city');
         $state     = $request->input('state');
+        $category  = $request->input('category');
         $sort      = in_array($request->input('sort'), self::SORT_COLUMNS)
                         ? $request->input('sort')
                         : 'first_name';
@@ -48,6 +51,8 @@ class PersonController extends Controller
             ->byCountry($country)
             ->byCity($city)
             ->byState($state)
+            ->byCategory($category)
+            ->with('categories')
             ->orderBy($sort, $direction)
             ->paginate($perPage)
             ->withQueryString();
@@ -59,12 +64,13 @@ class PersonController extends Controller
         $countries = $pluck('country');
         $cities    = $pluck('city');
         $states    = $pluck('state_province');
+        $categories = Category::orderBy('name')->get();
 
         $totalCount = Person::count();
 
         return view('persons.index', compact(
-            'persons', 'countries', 'cities', 'states',
-            'search', 'country', 'city', 'state',
+            'persons', 'countries', 'cities', 'states', 'categories',
+            'search', 'country', 'city', 'state', 'category',
             'sort', 'direction', 'perPage', 'totalCount'
         ));
     }
@@ -76,7 +82,8 @@ class PersonController extends Controller
     public function create()
     {
         if (auth()->user()->isViewer()) abort(403, 'Viewers cannot create records.');
-        return view('persons.create');
+        $categories = Category::orderBy('name')->get();
+        return view('persons.create', compact('categories'));
     }
 
     // ---------------------------------------------------------------------------
@@ -108,7 +115,10 @@ class PersonController extends Controller
         unset($validated['headshot_media_id'], $validated['headshot_remove'],
               $validated['cv_media_id'], $validated['cv_remove']);
 
-        Person::create($validated);
+        $categoryIds = $validated['category_ids'] ?? [];
+        unset($validated['category_ids']);
+        $person = Person::create($validated);
+        $person->categories()->sync($categoryIds);
 
         return redirect()->route('persons.index')
             ->with('success', 'Member created successfully.');
@@ -120,7 +130,7 @@ class PersonController extends Controller
 
     public function show(Person $person)
     {
-        $person->load(['certificates.pdfMedia']);
+        $person->load(['certificates.pdfMedia', 'categories']);
 
         return view('persons.show', compact('person'));
     }
@@ -132,7 +142,9 @@ class PersonController extends Controller
     public function edit(Person $person)
     {
         if (auth()->user()->isViewer()) abort(403, 'Viewers cannot edit records.');
-        return view('persons.edit', compact('person'));
+        $person->load('categories');
+        $categories = Category::orderBy('name')->get();
+        return view('persons.edit', compact('person', 'categories'));
     }
 
     // ---------------------------------------------------------------------------
@@ -172,7 +184,10 @@ class PersonController extends Controller
         unset($validated['headshot_media_id'], $validated['headshot_remove'],
               $validated['cv_media_id'], $validated['cv_remove']);
 
+        $categoryIds = $validated['category_ids'] ?? [];
+        unset($validated['category_ids']);
         $person->update($validated);
+        $person->categories()->sync($categoryIds);
 
         return redirect()->route('persons.index')
             ->with('success', 'Member updated successfully.');
@@ -291,6 +306,7 @@ class PersonController extends Controller
             'biography'            => ['biography', 'bio', 'Ø¨ÛŒÙˆÚ¯Ø±Ø§ÙÛŒ'],
             'areas_of_expertise'   => ['areas_of_expertise', 'expertise', 'ØªØ®ØµØµ'],
             'proposed_initiatives' => ['proposed_initiatives', 'initiatives', 'Ø§Ø¨ØªÚ©Ø§Ø±Ø§Øª'],
+            'categories'           => ['categories', 'category'],
         ];
 
         $colIndex = [];
@@ -311,8 +327,7 @@ class PersonController extends Controller
             ->all();
         $seenEmailsThisImport = [];
 
-        $batch     = [];
-        $batchSize = 500;
+        $existingCategories = Category::orderBy('name')->get()->keyBy(fn ($category) => mb_strtolower(trim($category->name)));
         $imported  = 0;
         $skipped   = 0;
         $errors    = 0;
@@ -378,18 +393,25 @@ class PersonController extends Controller
                 $seenEmailsThisImport[$record['email']] = true;
             }
 
-            $batch[] = $record;
-
-            if (count($batch) >= $batchSize) {
-                DB::table('persons')->insertOrIgnore($batch);
-                $imported += count($batch);
-                $batch = [];
+            $categoryNames = isset($colIndex['categories'])
+                ? array_filter(array_map('trim', preg_split('/[|;,]/u', $row[$colIndex['categories']] ?? '')))
+                : [];
+            $categoryIds = [];
+            foreach ($categoryNames as $name) {
+                $key = mb_strtolower($name);
+                $matched = $existingCategories->get($key);
+                if (!$matched) {
+                    $matched = Category::firstOrCreate(['name' => $name]);
+                    $existingCategories->put($key, $matched);
+                }
+                $categoryIds[] = $matched->id;
             }
-        }
 
-        if (!empty($batch)) {
-            DB::table('persons')->insertOrIgnore($batch);
-            $imported += count($batch);
+            DB::transaction(function () use ($record, $categoryIds, &$imported) {
+                $person = Person::create($record);
+                $person->categories()->sync(array_unique($categoryIds));
+                $imported++;
+            });
         }
 
         fclose($handle);
@@ -429,12 +451,14 @@ class PersonController extends Controller
             'country' => 'nullable|string|max:100',
             'city'    => 'nullable|string|max:100',
             'state'   => 'nullable|string|max:100',
+            'category' => 'nullable|integer|exists:categories,id',
         ]);
 
         $search  = $request->input('search');
         $country = $request->input('country');
         $city    = $request->input('city');
         $state   = $request->input('state');
+        $category = $request->input('category');
 
         $filename = 'waen_members_export_' . date('Ymd_His') . '.csv';
 
@@ -444,7 +468,7 @@ class PersonController extends Controller
             'Cache-Control'       => 'no-cache, no-store, must-revalidate',
         ];
 
-        $callback = function () use ($search, $country, $city, $state) {
+        $callback = function () use ($search, $country, $city, $state, $category) {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
 
@@ -454,7 +478,7 @@ class PersonController extends Controller
                 'Street Address', 'Apartment', 'City', 'State/Province', 'ZIP Code', 'Country',
                 'Education', 'Gender',
                 'Facebook', 'Instagram', 'LinkedIn', 'X (Twitter)',
-                'Biography', 'Areas of Expertise', 'Proposed Initiatives',
+                'Biography', 'Areas of Expertise', 'Proposed Initiatives', 'Categories',
             ]);
 
             Person::query()
@@ -462,6 +486,8 @@ class PersonController extends Controller
                 ->byCountry($country)
                 ->byCity($city)
                 ->byState($state)
+                ->byCategory($category)
+                ->with('categories')
                 ->orderBy('id')
                 ->chunk(1000, function ($persons) use ($handle) {
                     foreach ($persons as $p) {
@@ -473,6 +499,7 @@ class PersonController extends Controller
                             $p->education, $p->gender,
                             $p->facebook, $p->instagram, $p->linkedin, $p->twitter,
                             $p->biography, $p->areas_of_expertise, $p->proposed_initiatives,
+                            $p->categories->pluck('name')->implode('|'),
                         ]);
                     }
                 });
@@ -496,9 +523,9 @@ class PersonController extends Controller
         ];
 
         $rows = [
-            ['first_name', 'last_name', 'date_of_birth', 'occupation', 'email', 'waen_email', 'whatsapp', 'phone', 'street_address', 'apartment', 'city', 'state_province', 'zip_code', 'country', 'education', 'gender', 'facebook', 'instagram', 'linkedin', 'twitter', 'biography', 'areas_of_expertise', 'proposed_initiatives'],
-            ['Ahmad', 'Rahimi', '1990-05-15', 'Software Engineer at TechCorp', 'ahmad@example.com', 'ahmad@waen.org', '+93700123456', '+1234567890', '123 Main St', 'Apt 4B', 'Kabul', 'Kabul', '1001', 'Afghanistan', 'Master\'s Degree', 'Male', 'https://facebook.com/ahmad', 'https://instagram.com/ahmad', 'https://linkedin.com/in/ahmad', 'https://x.com/ahmad', 'Experienced engineer...', 'Machine Learning, Data Science', 'AI for Education'],
-            ['Sara', 'Karimi', '1988-11-22', 'Professor at University', 'sara@example.com', '', '+93799654321', '', '456 Oak Ave', '', 'Herat', 'Herat', '2001', 'Afghanistan', 'PhD', 'Female', '', '', 'https://linkedin.com/in/sara', '', 'Academic researcher...', 'Public Health, Policy', 'Health Education Programs'],
+            ['first_name', 'last_name', 'date_of_birth', 'occupation', 'email', 'waen_email', 'whatsapp', 'phone', 'street_address', 'apartment', 'city', 'state_province', 'zip_code', 'country', 'education', 'gender', 'facebook', 'instagram', 'linkedin', 'twitter', 'biography', 'areas_of_expertise', 'proposed_initiatives', 'categories'],
+            ['Ahmad', 'Rahimi', '1990-05-15', 'Software Engineer at TechCorp', 'ahmad@example.com', 'ahmad@waen.org', '+93700123456', '+1234567890', '123 Main St', 'Apt 4B', 'Kabul', 'Kabul', '1001', 'Afghanistan', 'Master\'s Degree', 'Male', 'https://facebook.com/ahmad', 'https://instagram.com/ahmad', 'https://linkedin.com/in/ahmad', 'https://x.com/ahmad', 'Experienced engineer...', 'Machine Learning, Data Science', 'AI for Education', 'Volunteers|Technology'],
+            ['Sara', 'Karimi', '1988-11-22', 'Professor at University', 'sara@example.com', '', '+93799654321', '', '456 Oak Ave', '', 'Herat', 'Herat', '2001', 'Afghanistan', 'PhD', 'Female', '', '', 'https://linkedin.com/in/sara', '', 'Academic researcher...', 'Public Health, Policy', 'Health Education Programs', 'Advisors'],
         ];
 
         $callback = function () use ($rows) {

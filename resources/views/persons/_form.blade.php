@@ -52,6 +52,21 @@
         @error('occupation') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
+    {{-- Categories --}}
+    <div class="col-12 col-md-6">
+        <label for="category_ids" class="form-label fw-semibold" style="font-size:.875rem;">Categories</label>
+        @php($selectedCategoryIds = old('category_ids', isset($person) ? $person->categories->pluck('id')->all() : []))
+        <select name="category_ids[]" id="category_ids" multiple size="4"
+                class="form-select @error('category_ids') is-invalid @enderror">
+            @foreach($categories as $category)
+                <option value="{{ $category->id }}" {{ in_array($category->id, $selectedCategoryIds) ? 'selected' : '' }}>{{ $category->name }}</option>
+            @endforeach
+        </select>
+        <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple categories. <a href="{{ route('categories.index') }}">Manage categories</a></small>
+        @error('category_ids') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        @error('category_ids.*') <div class="text-danger" style="font-size:.82rem;">{{ $message }}</div> @enderror
+    </div>
+
     {{-- Education --}}
     <div class="col-12 col-md-3">
         <label for="education" class="form-label fw-semibold" style="font-size:.875rem;">Education</label>

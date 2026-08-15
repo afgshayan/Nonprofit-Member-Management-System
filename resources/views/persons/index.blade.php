@@ -106,6 +106,17 @@
                     </select>
                 </div>
 
+                <!-- Category -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $filterCategory)
+                            <option value="{{ $filterCategory->id }}" {{ (string) ($category ?? '') === (string) $filterCategory->id ? 'selected' : '' }}>{{ $filterCategory->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!--  Per page -->
                 <div class="col-6 col-md-2 col-lg-2">
                     <label class="form-label small fw-600 mb-1" style="font-weight:600; font-size:.78rem; color:#374151;">Per Page</label>
@@ -191,6 +202,7 @@
                                 'first_name' => 'First Name',
                                 'last_name'  => 'Last Name',
                                 'country'    => 'Country',
+                                'categories' => 'Categories',
                             ];
                             if (!auth()->user()->isViewer()) {
                                 $cols = array_merge($cols, [
@@ -201,6 +213,10 @@
                         @endphp
 
                         @foreach($cols as $col => $label)
+                            @if($col === 'categories')
+                                <th>{{ $label }}</th>
+                                @continue
+                            @endif
                             @php
                                 $isActive = $sort === $col;
                                 $newDir   = ($isActive && $direction === 'asc') ? 'desc' : 'asc';
@@ -255,6 +271,13 @@
                                 </a>
                             </td>
                             <td style="font-size:.82rem;">{{ $person->country ?? '—' }}</td>
+                            <td style="font-size:.82rem;">
+                                @forelse($person->categories as $memberCategory)
+                                    <span class="badge bg-light text-dark border me-1">{{ $memberCategory->name }}</span>
+                                @empty
+                                    <span class="text-muted">—</span>
+                                @endforelse
+                            </td>
                             @if(!auth()->user()->isViewer())
                             <td>
                                 @if($person->email)

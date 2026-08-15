@@ -150,6 +150,13 @@
                         <p class="text-muted mb-0 text-center" style="font-size:.9rem;">{{ $person->occupation }}</p>
                     @endif
                     <span class="badge bg-light text-secondary border mt-2" style="font-size:.72rem;">Member #{{ $person->id }}</span>
+                    @if($person->categories->isNotEmpty())
+                        <div class="mt-2 d-flex flex-wrap gap-1 justify-content-center">
+                            @foreach($person->categories as $category)
+                                <span class="badge bg-primary-subtle text-primary-emphasis border">{{ $category->name }}</span>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Social Media Links --}}

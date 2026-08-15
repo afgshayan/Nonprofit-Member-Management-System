@@ -8,6 +8,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PublicCertificateVerificationController;
 use App\Http\Controllers\BackupController;
 
@@ -113,6 +114,7 @@ Route::middleware('auth')->group(function () {
 
     // ── User management (admin only) ─────────────────────────────────────────
     Route::resource('users', UserController::class)->except(['show']);
+    Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // ── Certificates ───────────────────────────────────────────────────────────
     Route::get('certificates/{certificate}/qr', [CertificateController::class, 'qr'])->name('certificates.qr');

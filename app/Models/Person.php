@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Person extends Model
@@ -127,6 +128,12 @@ class Person extends Model
         return $query->where('state_province', $state);
     }
 
+    public function scopeByCategory($query, $categoryId)
+    {
+        if (!$categoryId) return $query;
+        return $query->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
+    }
+
     // ---------------------------------------------------------------------------
     // Validation
     // ---------------------------------------------------------------------------
@@ -169,12 +176,19 @@ class Person extends Model
             'cv_remove'            => 'nullable|string',
             'areas_of_expertise'   => 'nullable|string|max:5000',
             'proposed_initiatives' => 'nullable|string|max:5000',
+            'category_ids'         => 'nullable|array',
+            'category_ids.*'       => 'integer|exists:categories,id',
         ];
     }
 
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class)->orderByDesc('issued_at')->orderByDesc('id');
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class)->orderBy('name');
     }
 
     public static function validationMessages(): array
