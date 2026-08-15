@@ -332,13 +332,13 @@
                     <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">ZIP</div>
-                            <div class="info-value">{{ $person->zip_code ?: 'â€”' }}</div>
+                            <div class="info-value">@if($person->zip_code){{ $person->zip_code }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">Country</div>
-                            <div class="info-value">{{ $person->country ?: 'â€”' }}</div>
+                            <div class="info-value">@if($person->country){{ $person->country }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</div>
                         </div>
                     </div>
                 </div>
