@@ -77,6 +77,17 @@
     }
     .info-value a:hover { text-decoration: underline; }
     .info-value .text-muted { font-weight: 400; }
+    .empty-value {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: .75rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #f1f5f9;
+        color: #94a3b8;
+        font-weight: 500;
+    }
     .social-btn {
         display: inline-flex;
         align-items: center;
@@ -197,7 +208,7 @@
                             <div class="info-value">
                                 @if($person->email)
                                     <a href="mailto:{{ $person->email }}">{{ $person->email }}</a>
-                                @else <span class="text-muted">â€”</span> @endif
+                                @else <span class="empty-value"><i class="bi bi-dash"></i> N/A</span> @endif
                             </div>
                         </div>
                     </div>
@@ -207,7 +218,7 @@
                             <div class="info-value">
                                 @if($person->waen_email)
                                     <a href="mailto:{{ $person->waen_email }}">{{ $person->waen_email }}</a>
-                                @else <span class="text-muted">â€”</span> @endif
+                                @else <span class="empty-value"><i class="bi bi-dash"></i> N/A</span> @endif
                             </div>
                         </div>
                     </div>
@@ -220,7 +231,7 @@
                                        target="_blank" rel="noopener" class="text-success">
                                         <i class="bi bi-whatsapp me-1"></i>{{ $person->whatsapp }}
                                     </a>
-                                @else <span class="text-muted">â€”</span> @endif
+                                @else <span class="empty-value"><i class="bi bi-dash"></i> N/A</span> @endif
                             </div>
                         </div>
                     </div>
@@ -230,7 +241,7 @@
                             <div class="info-value">
                                 @if($person->phone)
                                     <a href="tel:{{ $person->phone }}">{{ $person->phone }}</a>
-                                @else <span class="text-muted">â€”</span> @endif
+                                @else <span class="empty-value"><i class="bi bi-dash"></i> N/A</span> @endif
                             </div>
                         </div>
                     </div>
@@ -256,25 +267,35 @@
                         <div class="info-card">
                             <div class="info-label">Date of Birth</div>
                             <div class="info-value">
-                                {{ $person->date_of_birth ? $person->date_of_birth->format('M d, Y') : 'â€”' }}
+                                @if($person->date_of_birth)
+                                    {{ $person->date_of_birth->format('M d, Y') }}
+                                @else
+                                    <span class="empty-value"><i class="bi bi-dash"></i> N/A</span>
+                                @endif
                             </div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">Occupation</div>
-                            <div class="info-value">{{ $person->occupation ?: 'â€”' }}</div>
+                            <div class="info-value">
+                                @if($person->occupation)
+                                    {{ $person->occupation }}
+                                @else
+                                    <span class="empty-value"><i class="bi bi-dash"></i> N/A</span>
+                                @endif
+                            </div>
                         </div>
                     </div>                    <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">Education</div>
-                            <div class="info-value">{{ $person->education ?: '—' }}</div>
+                            <div class="info-value">@if($person->education){{ $person->education }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">Gender</div>
-                            <div class="info-value">{{ $person->gender ?: '—' }}</div>
+                            <div class="info-value">@if($person->gender){{ $person->gender }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</div>
                         </div>
                     </div>                </div>
 
@@ -285,9 +306,13 @@
                         <div class="info-card">
                             <div class="info-label">Street Address</div>
                             <div class="info-value">
-                                {{ $person->street_address ?: 'â€”' }}
-                                @if($person->apartment)
-                                    <span class="text-muted">({{ $person->apartment }})</span>
+                                @if($person->street_address)
+                                    {{ $person->street_address }}
+                                    @if($person->apartment)
+                                        <span class="text-muted">({{ $person->apartment }})</span>
+                                    @endif
+                                @else
+                                    <span class="empty-value"><i class="bi bi-dash"></i> N/A</span>
                                 @endif
                             </div>
                         </div>
@@ -295,13 +320,13 @@
                     <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">City</div>
-                            <div class="info-value">{{ $person->city ?: 'â€”' }}</div>
+                            <div class="info-value">@if($person->city){{ $person->city }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="info-card">
                             <div class="info-label">State/Province</div>
-                            <div class="info-value">{{ $person->state_province ?: 'â€”' }}</div>
+                            <div class="info-value">@if($person->state_province){{ $person->state_province }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
@@ -386,14 +411,14 @@
                                     @foreach($person->certificates as $certificate)
                                         <tr>
                                             <td class="fw-semibold">{{ $certificate->certificate_number }}</td>
-                                            <td>{{ $certificate->title ?: '—' }}</td>
-                                            <td>{{ $certificate->issued_at?->format('M d, Y') ?: '—' }}</td>
+                                            <td>@if($certificate->title){{ $certificate->title }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</td>
+                                            <td>@if($certificate->issued_at){{ $certificate->issued_at->format('M d, Y') }}@else<span class="empty-value"><i class="bi bi-dash"></i> N/A</span>@endif</td>
                                             @if(!auth()->user()->isViewer())
                                                 <td>
                                                     @if($certificate->pdfMedia)
                                                         <a href="{{ route('media.download', $certificate->pdfMedia) }}" class="btn btn-sm btn-outline-secondary">PDF</a>
                                                     @else
-                                                        —
+                                                        <span class="empty-value"><i class="bi bi-dash"></i> N/A</span>
                                                     @endif
                                                 </td>
                                                 <td>
