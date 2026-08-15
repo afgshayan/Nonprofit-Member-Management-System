@@ -1,4 +1,4 @@
 {
-    "version": "1.3.7",
-    "changelog": "Add member categories with filtering and CSV support"
+    "version": "1.3.8",
+    "changelog": "Reorganize sidebar: Move Certificates and Categories to Main menu section"
 }

@@ -381,6 +381,20 @@
                     <i class="bi bi-person-plus-fill"></i> Add Member
                 </a>
             </li>
+            <li>
+                <a href="{{ route('certificates.index') }}"
+                   class="{{ request()->routeIs('certificates.*') ? 'active' : '' }}">
+                    <i class="bi bi-patch-check-fill"></i> Certificates
+                </a>
+            </li>
+            @endif
+            @if(auth()->user()->isAdmin())
+            <li>
+                <a href="{{ route('categories.index') }}"
+                   class="{{ request()->routeIs('categories.*') ? 'active' : '' }}">
+                    <i class="bi bi-tags-fill"></i> Categories
+                </a>
+            </li>
             @endif
         </ul>
     </div>
@@ -389,12 +403,6 @@
         <div class="sb-section-lbl">Data Tools</div>
         <ul class="sb-nav">
             @if(!auth()->user()->isViewer())
-            <li>
-                <a href="{{ route('certificates.index') }}"
-                   class="{{ request()->routeIs('certificates.*') ? 'active' : '' }}">
-                    <i class="bi bi-patch-check-fill"></i> Certificates
-                </a>
-            </li>
             <li>
                 <a href="{{ route('media.index') }}"
                    class="{{ request()->routeIs('media.*') ? 'active' : '' }}">
@@ -426,12 +434,6 @@
                 <a href="{{ route('users.index') }}"
                    class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bi bi-person-lock"></i> Users
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('categories.index') }}"
-                   class="{{ request()->routeIs('categories.*') ? 'active' : '' }}">
-                    <i class="bi bi-tags-fill"></i> Categories
                 </a>
             </li>
         </ul>
