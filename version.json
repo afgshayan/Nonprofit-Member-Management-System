@@ -1,4 +1,4 @@
 {
-    "version": "1.3.9",
-    "changelog": "Fix member profile empty field display - show 'N/A' instead of garbled characters"
+    "version": "1.3.10",
+    "changelog": "Complete fix for member profile empty field display - all broken UTF-8 characters replaced"
 }
