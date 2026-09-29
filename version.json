@@ -1,4 +1,4 @@
 {
-    "version": "1.3.11",
-    "changelog": "Add CSV import for certificates, with PDF attachments matched by file name (folder, files or ZIP upload)"
+    "version": "1.3.12",
+    "changelog": "Certificate import: warn before import when PDFs referenced in the CSV have not been selected"
 }
