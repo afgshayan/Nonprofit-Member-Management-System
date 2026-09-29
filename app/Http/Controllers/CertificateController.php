@@ -273,7 +273,7 @@ class CertificateController extends Controller
             if ($pdfPath !== '') {
                 $pdfKey = mb_strtolower(self::baseName($pdfPath));
                 if (!isset($pdfPool[$pdfKey])) {
-                    $rowErrors[] = ['row' => $rowNumber, 'message' => 'PDF "' . self::baseName($pdfPath) . '" was not found among the uploaded files — row skipped.'];
+                    $rowErrors[] = ['row' => $rowNumber, 'message' => 'PDF "' . self::baseName($pdfPath) . '" was not found among the uploaded files — row skipped. Select this file (or its folder) in step 2 of the import form, or include it in the ZIP.'];
                     continue;
                 }
             }

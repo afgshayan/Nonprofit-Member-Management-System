@@ -129,6 +129,7 @@
                     </div>
 
                     <div id="uploadLimitWarning" class="alert alert-warning d-none" style="font-size:.84rem;"></div>
+                    <div id="missingPdfWarning" class="alert alert-warning d-none" style="font-size:.84rem;"></div>
 
                     <div class="d-flex gap-2 justify-content-end">
                         <a href="{{ route('certificates.index') }}" class="btn btn-outline-secondary">
@@ -213,7 +214,92 @@
     folderInput.addEventListener('change', function () { setPdfs(folderInput.files); });
     filesInput.addEventListener('change', refresh);
 
-    document.getElementById('importForm').addEventListener('submit', function () {
+    // ── Compare the PDFs referenced in the CSV with the selected files ──
+    var csvInput   = document.getElementById('csv_file');
+    var zipInput   = document.getElementById('pdf_zip');
+    var missingBox = document.getElementById('missingPdfWarning');
+    var neededPdfs = [];
+
+    function parseCsv(text) {
+        var rows = [], row = [], field = '', inQuotes = false;
+        for (var i = 0; i < text.length; i++) {
+            var c = text[i];
+            if (inQuotes) {
+                if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+                else if (c === '"') inQuotes = false;
+                else field += c;
+            } else if (c === '"') inQuotes = true;
+            else if (c === ',') { row.push(field); field = ''; }
+            else if (c === '\n' || c === '\r') {
+                if (c === '\r' && text[i + 1] === '\n') i++;
+                row.push(field); rows.push(row); row = []; field = '';
+            } else field += c;
+        }
+        if (field !== '' || row.length) { row.push(field); rows.push(row); }
+        return rows;
+    }
+
+    function baseName(path) {
+        return path.trim().split(/[\\/]/).pop();
+    }
+
+    function missingPdfs() {
+        var selected = {};
+        Array.prototype.forEach.call(filesInput.files, function (f) { selected[f.name.toLowerCase()] = true; });
+        return neededPdfs.filter(function (name) { return !selected[name.toLowerCase()]; });
+    }
+
+    function checkMissing() {
+        var missing = missingPdfs();
+        if (!missing.length || zipInput.files.length) {
+            missingBox.classList.add('d-none');
+            return;
+        }
+        var list = missing.slice(0, 20).map(function (n) {
+            return '<li><code>' + n.replace(/[&<>"]/g, function (ch) { return '&#' + ch.charCodeAt(0) + ';'; }) + '</code></li>';
+        }).join('');
+        missingBox.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' +
+            'The CSV references <strong>' + missing.length + '</strong> PDF file(s) that are not selected yet. ' +
+            'Use <strong>Choose Folder</strong> or <strong>Choose PDF Files</strong> above (or upload a ZIP):' +
+            '<ul class="mb-0 mt-1">' + list + (missing.length > 20 ? '<li>…</li>' : '') + '</ul>';
+        missingBox.classList.remove('d-none');
+    }
+
+    csvInput.addEventListener('change', function () {
+        neededPdfs = [];
+        if (!csvInput.files.length) { checkMissing(); return; }
+
+        var reader = new FileReader();
+        reader.onload = function () {
+            var rows = parseCsv(String(reader.result).replace(/^﻿/, ''));
+            var header = (rows.shift() || []).map(function (h) { return h.trim().toLowerCase().replace(/ /g, '_'); });
+            var col = -1;
+            ['pdf_file', 'pdf_path', 'pdf', 'file', 'file_path'].some(function (alias) {
+                col = header.indexOf(alias);
+                return col !== -1;
+            });
+            if (col !== -1) {
+                var seen = {};
+                rows.forEach(function (r) {
+                    var name = baseName(r[col] || '');
+                    if (name && !seen[name.toLowerCase()]) { seen[name.toLowerCase()] = true; neededPdfs.push(name); }
+                });
+            }
+            checkMissing();
+        };
+        reader.readAsText(csvInput.files[0]);
+    });
+
+    filesInput.addEventListener('change', checkMissing);
+    folderInput.addEventListener('change', checkMissing);
+    zipInput.addEventListener('change', checkMissing);
+
+    document.getElementById('importForm').addEventListener('submit', function (e) {
+        var missing = zipInput.files.length ? [] : missingPdfs();
+        if (missing.length && !confirm(missing.length + ' PDF file(s) referenced in the CSV are not selected, so those rows will be skipped.\n\nImport anyway?')) {
+            e.preventDefault();
+            return;
+        }
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Processing…';
     });
