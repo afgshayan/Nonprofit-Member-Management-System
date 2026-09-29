@@ -77,6 +77,9 @@ Route::middleware('auth')->group(function () {
     Route::post('dashboard-export', [PersonController::class, 'exportCsv'])->name('persons.export.download');
     Route::get('dashboard-sample',  [PersonController::class, 'sampleCsv'])->name('persons.sample');
 
+    // Quick headshot upload from the members list
+    Route::post('dashboard/{person}/headshot', [PersonController::class, 'uploadHeadshot'])->name('persons.headshot.upload');
+
     // Resource CRUD — bound to /dashboard, parameter kept as {person}
     Route::resource('dashboard', PersonController::class)
         ->parameters(['dashboard' => 'person'])

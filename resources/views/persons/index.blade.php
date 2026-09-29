@@ -257,9 +257,15 @@
                                              alt="" class="rounded-circle"
                                              style="width:30px; height:30px; object-fit:cover;">
                                     @else
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center avatar-initial"
                                              style="width:30px; height:30px; background:#e5e7eb; color:#6b7280; font-size:.7rem; font-weight:600;">
-                                            {{ strtoupper(substr($person->first_name, 0, 1)) }}
+                                            <span class="avatar-letter">{{ strtoupper(substr($person->first_name, 0, 1)) }}</span>
+                                            @if(!auth()->user()->isViewer())
+                                                <span class="avatar-upload-btn" role="button" title="Upload profile photo"
+                                                      data-url="{{ route('persons.headshot.upload', $person) }}">
+                                                    <i class="bi bi-camera-fill"></i>
+                                                </span>
+                                            @endif
                                         </div>
                                     @endif
                                     <strong>{{ $person->first_name }}</strong>
@@ -345,6 +351,14 @@
     </div>
 @endif
 
+{{-- ── Quick headshot upload (kept outside bulkForm: forms cannot be nested) ── --}}
+@if(!auth()->user()->isViewer())
+<form method="POST" id="headshotForm" enctype="multipart/form-data" class="d-none">
+    @csrf
+    <input type="file" name="headshot_file" id="headshotInput" accept="image/jpeg,image/png,image/webp,image/gif">
+</form>
+@endif
+
 {{-- ── Delete modal ── --}}
 <div class="modal fade" id="delModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -375,10 +389,50 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .avatar-initial { position: relative; flex-shrink: 0; }
+    .avatar-upload-btn {
+        position: absolute; inset: 0; border-radius: 50%;
+        display: none; align-items: center; justify-content: center;
+        background: #f97316; color: #fff; font-size: .75rem; cursor: pointer;
+    }
+    .avatar-initial:hover .avatar-upload-btn { display: flex; }
+    .avatar-initial:hover .avatar-letter { visibility: hidden; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 (function () {
     'use strict';
+
+    /* Quick headshot upload — the button sits inside the row link, so stop navigation */
+    var headshotForm  = document.getElementById('headshotForm');
+    var headshotInput = document.getElementById('headshotInput');
+    var headshotBtn   = null;
+
+    document.querySelectorAll('.avatar-upload-btn').forEach(function (b) {
+        b.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            headshotBtn = b;
+            headshotForm.action = b.dataset.url;
+            headshotInput.value = '';
+            headshotInput.click();
+        });
+    });
+
+    if (headshotInput) {
+        headshotInput.addEventListener('change', function () {
+            if (!headshotInput.files.length) return;
+            if (headshotBtn) {
+                headshotBtn.style.display = 'flex';
+                headshotBtn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.8rem;height:.8rem;" role="status"></span>';
+            }
+            headshotForm.submit();
+        });
+    }
 
     /* Single delete */
     document.querySelectorAll('.del-btn').forEach(function (b) {

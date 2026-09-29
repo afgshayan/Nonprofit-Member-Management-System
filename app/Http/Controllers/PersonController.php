@@ -197,6 +197,24 @@ class PersonController extends Controller
     // Destroy
     // ---------------------------------------------------------------------------
 
+    // ---------------------------------------------------------------------------
+    // Quick headshot upload (from the members list)
+    // ---------------------------------------------------------------------------
+
+    public function uploadHeadshot(Request $request, Person $person)
+    {
+        if (auth()->user()->isViewer()) abort(403, 'Viewers cannot edit records.');
+
+        $request->validate([
+            'headshot_file' => 'required|image|mimes:jpg,jpeg,png,webp,gif|max:5120',
+        ]);
+
+        $media = Media::storeUpload($request->file('headshot_file'), auth()->id());
+        $person->update(['headshot' => $media->path]);
+
+        return back()->with('success', 'Profile photo uploaded for ' . $person->full_name . '.');
+    }
+
     public function destroy(Person $person)
     {
         if (!auth()->user()->isAdmin()) {
