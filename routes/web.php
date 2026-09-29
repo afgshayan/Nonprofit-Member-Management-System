@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
     Route::post('certificates/import',       [CertificateController::class, 'importCsv'])->name('certificates.import');
     Route::get('certificates/import/sample', [CertificateController::class, 'sampleCsv'])->name('certificates.import.sample');
     Route::get('certificates/{certificate}/qr', [CertificateController::class, 'qr'])->name('certificates.qr');
+    Route::post('certificates/{certificate}/pdf', [CertificateController::class, 'uploadPdf'])->name('certificates.pdf.upload');
     Route::resource('certificates', CertificateController::class)->except(['show']);
     // ── Update system (admin only) ────────────────────────────────────────────
     Route::get ('update',       [UpdateController::class, 'index'])->name('update.index');

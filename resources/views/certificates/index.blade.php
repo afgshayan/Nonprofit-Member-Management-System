@@ -61,7 +61,14 @@
                             @if($certificate->pdfMedia)
                                 <a href="{{ route('media.download', $certificate->pdfMedia) }}" class="btn btn-sm btn-outline-secondary">Download</a>
                             @else
-                                —
+                                <form method="POST" action="{{ route('certificates.pdf.upload', $certificate) }}"
+                                      enctype="multipart/form-data" class="pdf-upload-form">
+                                    @csrf
+                                    <input type="file" name="pdf_file" accept=".pdf,application/pdf" class="d-none">
+                                    <button type="button" class="btn btn-sm btn-outline-primary pdf-upload-btn">
+                                        <i class="bi bi-upload me-1"></i>Upload
+                                    </button>
+                                </form>
                             @endif
                         </td>
                         <td class="text-end">
@@ -90,3 +97,21 @@
 
 <div class="mt-3">{{ $certificates->links() }}</div>
 @endsection
+
+@push('scripts')
+<script>
+document.querySelectorAll('.pdf-upload-form').forEach(function (form) {
+    var input = form.querySelector('input[type=file]');
+    var btn   = form.querySelector('.pdf-upload-btn');
+
+    btn.addEventListener('click', function () { input.click(); });
+
+    input.addEventListener('change', function () {
+        if (!input.files.length) return;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Uploading…';
+        form.submit();
+    });
+});
+</script>
+@endpush

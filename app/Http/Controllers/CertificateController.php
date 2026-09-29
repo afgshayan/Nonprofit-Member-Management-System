@@ -107,6 +107,20 @@ class CertificateController extends Controller
             ->with('success', 'Certificate deleted successfully.');
     }
 
+    public function uploadPdf(Request $request, Certificate $certificate)
+    {
+        if (auth()->user()->isViewer()) abort(403);
+
+        $request->validate([
+            'pdf_file' => 'required|file|mimes:pdf|max:20480',
+        ]);
+
+        $media = Media::storeUpload($request->file('pdf_file'), auth()->id());
+        $certificate->update(['pdf_media_id' => $media->id]);
+
+        return back()->with('success', 'PDF uploaded for certificate ' . $certificate->certificate_number . '.');
+    }
+
     public function qr(Certificate $certificate)
     {
         if (auth()->user()->isViewer()) abort(403);
