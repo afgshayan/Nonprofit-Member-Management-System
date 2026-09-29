@@ -1,4 +1,4 @@
 {
-    "version": "1.3.12",
-    "changelog": "Certificate import: warn before import when PDFs referenced in the CSV have not been selected"
+    "version": "1.3.13",
+    "changelog": "Certificates list: upload a PDF directly from the PDF column for certificates that have none"
 }
