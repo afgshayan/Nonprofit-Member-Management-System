@@ -16,9 +16,14 @@
         <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search me-1"></i>Search</button>
     </form>
 
-    <a href="{{ route('certificates.create') }}" class="btn btn-primary">
-        <i class="bi bi-patch-check-fill me-1"></i>Issue Certificate
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('certificates.import.form') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-cloud-upload-fill me-1"></i>Import CSV
+        </a>
+        <a href="{{ route('certificates.create') }}" class="btn btn-primary">
+            <i class="bi bi-patch-check-fill me-1"></i>Issue Certificate
+        </a>
+    </div>
 </div>
 
 <div class="card">

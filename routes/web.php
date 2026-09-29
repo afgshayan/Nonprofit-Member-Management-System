@@ -117,6 +117,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // ── Certificates ───────────────────────────────────────────────────────────
+    // Import / sample CSV must be declared BEFORE resource to avoid {certificate} wildcard
+    Route::get('certificates/import',        [CertificateController::class, 'importForm'])->name('certificates.import.form');
+    Route::post('certificates/import',       [CertificateController::class, 'importCsv'])->name('certificates.import');
+    Route::get('certificates/import/sample', [CertificateController::class, 'sampleCsv'])->name('certificates.import.sample');
     Route::get('certificates/{certificate}/qr', [CertificateController::class, 'qr'])->name('certificates.qr');
     Route::resource('certificates', CertificateController::class)->except(['show']);
     // ── Update system (admin only) ────────────────────────────────────────────
