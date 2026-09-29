@@ -106,11 +106,41 @@ document.querySelectorAll('.pdf-upload-form').forEach(function (form) {
 
     btn.addEventListener('click', function () { input.click(); });
 
+    var original = btn.innerHTML;
+
+    // Upload in the background so the page does not reload
     input.addEventListener('change', function () {
         if (!input.files.length) return;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Uploading…';
-        form.submit();
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: new FormData(form),
+        })
+            .then(function (res) {
+                return res.json().catch(function () { return {}; }).then(function (data) {
+                    if (!res.ok) {
+                        var msg = (data.errors && data.errors.pdf_file && data.errors.pdf_file[0]) || data.message || 'Upload failed.';
+                        throw new Error(msg);
+                    }
+                    return data;
+                });
+            })
+            .then(function (data) {
+                var link = document.createElement('a');
+                link.href = data.download_url;
+                link.className = 'btn btn-sm btn-outline-secondary';
+                link.textContent = 'Download';
+                form.replaceWith(link);
+            })
+            .catch(function (err) {
+                alert(err.message);
+                btn.disabled = false;
+                btn.innerHTML = original;
+                input.value = '';
+            });
     });
 });
 </script>

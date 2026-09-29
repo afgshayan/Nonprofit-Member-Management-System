@@ -118,6 +118,13 @@ class CertificateController extends Controller
         $media = Media::storeUpload($request->file('pdf_file'), auth()->id());
         $certificate->update(['pdf_media_id' => $media->id]);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success'      => true,
+                'download_url' => route('media.download', $media),
+            ]);
+        }
+
         return back()->with('success', 'PDF uploaded for certificate ' . $certificate->certificate_number . '.');
     }
 

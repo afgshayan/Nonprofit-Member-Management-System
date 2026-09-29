@@ -212,6 +212,13 @@ class PersonController extends Controller
         $media = Media::storeUpload($request->file('headshot_file'), auth()->id());
         $person->update(['headshot' => $media->path]);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'url'     => $person->headshot_url,
+            ]);
+        }
+
         return back()->with('success', 'Profile photo uploaded for ' . $person->full_name . '.');
     }
 

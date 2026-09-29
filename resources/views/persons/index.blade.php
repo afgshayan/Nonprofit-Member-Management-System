@@ -423,14 +423,44 @@
         });
     });
 
+    // Upload in the background so the page does not reload
     if (headshotInput) {
         headshotInput.addEventListener('change', function () {
-            if (!headshotInput.files.length) return;
-            if (headshotBtn) {
-                headshotBtn.style.display = 'flex';
-                headshotBtn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.8rem;height:.8rem;" role="status"></span>';
-            }
-            headshotForm.submit();
+            if (!headshotInput.files.length || !headshotBtn) return;
+
+            var btn      = headshotBtn;
+            var avatar   = btn.closest('.avatar-initial');
+            var original = btn.innerHTML;
+            btn.style.display = 'flex';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.8rem;height:.8rem;" role="status"></span>';
+
+            fetch(headshotForm.action, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(headshotForm),
+            })
+                .then(function (res) {
+                    return res.json().catch(function () { return {}; }).then(function (data) {
+                        if (!res.ok) {
+                            var msg = (data.errors && data.errors.headshot_file && data.errors.headshot_file[0]) || data.message || 'Upload failed.';
+                            throw new Error(msg);
+                        }
+                        return data;
+                    });
+                })
+                .then(function (data) {
+                    var img = document.createElement('img');
+                    img.src = data.url;
+                    img.alt = '';
+                    img.className = 'rounded-circle';
+                    img.style.cssText = 'width:30px; height:30px; object-fit:cover;';
+                    avatar.replaceWith(img);
+                })
+                .catch(function (err) {
+                    alert(err.message);
+                    btn.style.display = '';
+                    btn.innerHTML = original;
+                });
         });
     }
 
